@@ -3,6 +3,11 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Цвет верхней шторки браузера на мобилках -->
+        <meta name="theme-color" content="#005b9f">
+
+        <!-- Ссылка на сгенерированный манифест -->
+        <link rel="manifest" href="{{ asset('build/manifest.webmanifest') }}">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

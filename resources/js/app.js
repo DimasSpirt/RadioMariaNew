@@ -6,6 +6,16 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import MainLayout from './Layouts/MainLayout.vue';
+import { registerSW } from 'virtual:pwa-register';
+
+const updateSW = registerSW({
+    onNeedRefresh() {
+        console.log('PWA: Доступно обновление!');
+    },
+    onOfflineReady() {
+        console.log('PWA: Приложение готово к работе в офлайне');
+    },
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
