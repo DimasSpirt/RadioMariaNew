@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="mission">
+  <div class="mission" id="mission">
     <div class="mission-img"><img src="/images/img5.jpg" alt="Паломники Радіо Марія">
       <div class="mission-img-ov"></div>
     </div>

@@ -1,5 +1,7 @@
-<script setup lang="ts">
+<script setup>
+import { useSocials } from '@/Composables/useSocials';
 
+const { renderedSocials } = useSocials();
 </script>
 
 <template>
@@ -245,15 +247,26 @@
       </div>
     </div>
   </div>
+
   <div class="sub-ban">
     <div>
       <div class="sub-title">Підписуйтесь на подкасти</div>
       <div class="sub-desc">Слухайте Радіо Марія де завгодно — в плеєрі, в дорозі, вдома</div>
     </div>
-    <div class="sub-btns"><a class="sbb" href="#">Apple Podcasts</a><a class="sbb" href="#">Spotify</a>
-      <a class="sbb" href="#">Telegram</a>
-      <a class="sbb" href="#">YouTube</a>
-      <a class="sbb" href="#" style="border-color:rgba(200,168,75,.4);color:#e8c870">RSS</a></div>
+
+    <div class="sub-btns">
+      <a
+          v-for="social in renderedSocials"
+          :key="'sub-' + social.id"
+          class="sbb"
+          :href="social.link"
+          target="_blank"
+          :style="social.name === 'RSS' ? 'border-color:rgba(200,168,75,.4);color:#e8c870' : ''"
+      >
+        {{ social.name }}
+      </a>
+    </div>
+
   </div>
 </template>
 

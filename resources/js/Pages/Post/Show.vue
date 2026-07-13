@@ -1,36 +1,56 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import { computed, ref } from 'vue'; // <-- ВОТ ОНА, ПОТЕРЯШКА!
+import { computed, ref } from 'vue';
 import axios from 'axios';
+import { playerState } from '@/Store/player';
 
 const props = defineProps({
   post: Object,
   similar: Array
 });
 
-// --- ЛОГИКА ПЛЕЕРА ПОСТА ---
-const localAudioRef = ref(null);
-const hasTracked = ref(false); // Предохранитель от накрутки
+// Предохранитель от накрутки
+const hasTracked = ref(false);
 
-// Фоновый трекинг прослушивания
 const trackAudio = () => {
   if (!hasTracked.value && props.post?.id) {
     axios.post(`/play/track/${props.post.id}`).catch(() => {});
-    hasTracked.value = true; // Считаем только 1 раз за загрузку страницы
+    hasTracked.value = true;
   }
 };
 
-// Чтобы золотая кнопка тоже умела включать звук
+// Формируем URL аудиофайла
+const mediaUrl = import.meta.env.VITE_MEDIA_URL || '';
+const audioUrl = computed(() => props.post?.audio ? `${mediaUrl}/audio/content/${props.post.audio}` : null);
+
+// Проверяем, играет ли именно этот трек сейчас в шапке
+const isThisTrackPlaying = computed(() => {
+  return playerState.currentStream === audioUrl.value;
+});
+
+// Клик по кнопке Play
 const toggleLocalAudio = () => {
-  if (localAudioRef.value) {
-    if (localAudioRef.value.paused) {
-      localAudioRef.value.play(); // При вызове play() сработает событие @play
-    } else {
-      localAudioRef.value.pause();
-    }
-  }
+  if (!audioUrl.value) return;
+
+  trackAudio();
+
+  const subtitleStr = props.post.author?.name || props.post.program?.name || 'Архівний запис';
+
+  playerState.toggle({
+    url: audioUrl.value,
+    type: 'podcast',
+    title: props.post.title,
+    subtitle: subtitleStr
+  });
 };
-// ---------------------------
+
+// Конвертируем секунды в формат 0:00
+const formatTime = (seconds) => {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
 
 // Красиво форматируем дату из базы
 const formattedDate = computed(() => {
@@ -104,7 +124,8 @@ const formatShortDate = (dateString) => {
               @click="toggleLocalAudio"
               class="w-16 h-16 shrink-0 bg-[var(--gold)] text-[var(--dark)] rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-md"
           >
-            <svg class="w-8 h-8 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg v-if="!(playerState.isPlaying && isThisTrackPlaying)" class="w-8 h-8 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg v-else class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
           </button>
 
           <div class="flex-grow w-full">
@@ -120,16 +141,26 @@ const formatShortDate = (dateString) => {
               </a>
             </div>
 
-            <audio
-                ref="localAudioRef"
-                class="w-full h-10 custom-audio"
-                :src="`${$mediaUrl}/audio/content/${post.audio}`"
-                controls
-                preload="none"
-                @play="trackAudio"
-            ></audio>
-          </div>
+            <div class="flex items-center gap-3 bg-black/20 rounded-lg px-4 py-2 border border-white/5 mt-2">
+              <div class="text-xs font-mono opacity-70 w-10 text-right">
+                {{ isThisTrackPlaying ? formatTime(playerState.currentTime) : '0:00' }}
+              </div>
 
+              <input
+                  type="range"
+                  class="flex-grow accent-[var(--gold)] h-1.5 bg-white/20 rounded-lg cursor-pointer"
+                  min="0"
+                  :max="isThisTrackPlaying && playerState.duration ? playerState.duration : 100"
+                  :value="isThisTrackPlaying ? playerState.currentTime : 0"
+                  @input="isThisTrackPlaying ? playerState.seek($event.target.value) : null"
+              >
+
+              <div class="text-xs font-mono opacity-70 w-10">
+                {{ isThisTrackPlaying && playerState.duration ? formatTime(playerState.duration) : '0:00' }}
+              </div>
+            </div>
+
+          </div>
         </div>
 
       </div>

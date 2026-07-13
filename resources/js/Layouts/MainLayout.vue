@@ -1,6 +1,10 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import Header from '@/Components/Header.vue';
+import { useSocials } from '@/Composables/useSocials';
+
+// Достаем отсортированный массив соцсетей
+const { renderedSocials } = useSocials();
 </script>
 
 <template>
@@ -13,20 +17,19 @@ import Header from '@/Components/Header.vue';
         <span class="tlogo-name">Радіо Марія Україна</span>
         <span class="tlogo-freq">106.3 FM · Київ</span>
       </Link>
+
       <div class="tsocs">
-        <a class="tsoc" href="https://www.facebook.com/radiomariaukraine/" target="_blank">
-          <svg viewBox="0 0 16 16"><path d="M9 6h2V4a4 4 0 00-4 4v1H5v2h2v5h2v-5h2l.5-2H9V8a2 2 0 012-2z"/></svg>Facebook
-        </a>
-        <a class="tsoc" href="https://www.youtube.com/@RadioMariaUkraine" target="_blank">
-          <svg viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2.5"/><path d="M6.5 6l4 2-4 2V6z" fill="#0a1e3a"/></svg>YouTube
-        </a>
-        <a class="tsoc" href="#">
-          <svg viewBox="0 0 16 16"><path d="M14 2L2 6.5l4 1.5 1.5 4L10 9l3 5V2z"/></svg>Telegram
-        </a>
-        <a class="tsoc" href="#">
-          <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".75" fill="#0a1e3a"/></svg>Instagram
+        <a
+            v-for="social in renderedSocials"
+            :key="'top-' + social.id"
+            class="tsoc"
+            :href="social.link"
+            target="_blank"
+        >
+          <svg viewBox="0 0 16 16" v-html="social.svg"></svg>{{ social.name }}
         </a>
       </div>
+
       <a class="donate-top" href="#">
         <svg viewBox="0 0 14 14" stroke-width="2"><line x1="7" y1="1" x2="7" y2="13"/><path d="M4 4c0-1.7 6-1.7 6 0s-6 2-6 4 6 1.7 6 0"/></svg>Підтримати радіо
       </a>
@@ -34,7 +37,6 @@ import Header from '@/Components/Header.vue';
 
     <Header />
 
-    <!-- Уникальный контент каждой страницы -->
     <main>
       <slot />
     </main>
@@ -99,16 +101,22 @@ import Header from '@/Components/Header.vue';
 
       <div class="fbot">
         <div class="fcopy">© 2025 Радіо Марія Україна</div>
-        <!-- Вот тот самый код соцсетей из твоего файла -->
+
         <div class="fsocs">
-          <a class="fsoc" href="#"><svg viewBox="0 0 16 16"><path d="M9 6h2V4a4 4 0 00-4 4v1H5v2h2v5h2v-5h2l.5-2H9V8a2 2 0 012-2z"/></svg></a>
-          <a class="fsoc" href="#"><svg viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2.5"/><path d="M6.5 6l4 2-4 2V6z" fill="#fff"/></svg></a>
-          <a class="fsoc" href="#"><svg viewBox="0 0 16 16"><path d="M14 2L2 6.5l4 1.5 1.5 4L10 9l3 5V2z"/></svg></a>
-          <a class="fsoc" href="#"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3"/><circle cx="8" cy="8" r="3"/><circle cx="11.5" cy="4.5" r=".75" fill="#fff"/></svg></a>
+          <a
+              v-for="social in renderedSocials"
+              :key="'bot-' + social.id"
+              class="fsoc"
+              :href="social.link"
+              target="_blank"
+          >
+            <svg viewBox="0 0 16 16" v-html="social.svg"></svg>
+          </a>
         </div>
+
         <div class="fbl">
           <a href="#">Конфіденційність</a>
-          <a href="#">Карта сайту</a>
+          <a href="/sitemap.xml">Карта сайту</a>
         </div>
       </div>
     </footer>

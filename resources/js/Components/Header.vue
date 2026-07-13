@@ -1,32 +1,72 @@
 <script setup>
 import {Link} from '@inertiajs/vue3';
-import {ref, onMounted} from 'vue';
-import { playerState } from '@/Store/player'; // Подключаем глобальный стейт
+import {ref, onMounted, onUnmounted} from 'vue';
+import { playerState } from '@/Store/player';
 
 const isDropOpen = ref(false);
-
 const audioRef = ref(null);
 
-// Как только шапка загрузится, отдаем ссылку на тег <audio> в глобальный стейт
+// Переменная для подсветки пункта меню "Місія"
+const isMissionActive = ref(false);
+
+// Функция-шпион, которая проверяет позицию блока
+const checkScroll = () => {
+  const missionEl = document.getElementById('mission');
+
+  if (!missionEl) {
+    isMissionActive.value = false;
+    return;
+  }
+
+  const rect = missionEl.getBoundingClientRect();
+  isMissionActive.value = rect.top <= window.innerHeight / 2 && rect.bottom >= 100;
+};
+
+// Как только шапка загрузится, отдаем ссылку на тег <audio> в глобальный стейт,
+// загружаем расписание, запускаем таймер и вешаем слушатель скролла
 onMounted(() => {
   playerState.audioElement = audioRef.value;
+  playerState.fetchSchedule();
+  playerState.initLiveTimer();
+
+  window.addEventListener('scroll', checkScroll, { passive: true });
+  checkScroll();
+});
+
+// Убираем слушатель при уничтожении компонента
+onUnmounted(() => {
+  window.removeEventListener('scroll', checkScroll);
 });
 </script>
 
 <template>
   <div class="player-nav">
-    <audio ref="audioRef" :src="playerState.currentStream" preload="none"></audio>
+    <audio
+        ref="audioRef"
+        :src="playerState.currentStream"
+        preload="none"
+        @timeupdate="playerState.currentTime = $event.target.currentTime"
+        @loadedmetadata="playerState.duration = $event.target.duration"
+        @ended="playerState.isPlaying = false"
+    ></audio>
 
     <div class="player-bar">
-      <div class="live-pill">
-        <div class="ldot"></div>
-        <span class="ltext">Live</span>
+      <div class="live-pill" :style="playerState.trackType === 'podcast' ? 'background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);' : ''">
+        <div class="ldot" v-if="playerState.trackType === 'live'"></div>
+        <span class="ltext">{{ playerState.trackType === 'live' ? 'Live' : 'Архів' }}</span>
       </div>
+
       <div class="pinfo">
-        <div class="pnow">Заклик до Бердичівської Богородиці — о. Олексій Самсонов</div>
-        <div class="pnext">Наступна: <span>Розарій о 21:00</span></div>
+        <div class="pnow">{{ playerState.trackTitle }}</div>
+        <div class="pnext" v-html="playerState.subtitle"></div>
       </div>
-      <div class="skip">−15</div>
+
+      <div
+          class="skip"
+          style="cursor: pointer;"
+          :style="{ visibility: playerState.trackType === 'podcast' ? 'visible' : 'hidden' }"
+          @click="playerState.skip(-15)"
+      >−15</div>
 
       <button class="play-btn" @click="playerState.toggle()">
         <svg v-if="!playerState.isPlaying" viewBox="0 0 12 12">
@@ -38,7 +78,13 @@ onMounted(() => {
         </svg>
       </button>
 
-      <div class="skip">+15</div>
+      <div
+          class="skip"
+          style="cursor: pointer;"
+          :style="{ visibility: playerState.trackType === 'podcast' ? 'visible' : 'hidden' }"
+          @click="playerState.skip(15)"
+      >+15</div>
+
       <div class="strsw">
         <div class="sch on">📻 FM-ефір</div>
         <div class="sch">📿 Молитва</div>
@@ -47,30 +93,43 @@ onMounted(() => {
       <div class="embl">⧉ Вікно</div>
     </div>
 
-    <div class="pdrop" :class="{ open: isDropOpen }" id="pdrop">
-      <div class="prow past">
-        <div class="prow-t">19:30</div>
-        <div class="prow-n">Катехиза — о. Тарас</div>
+    <div class="pdrop" :class="{ open: isDropOpen }" id="pdrop" v-if="playerState.liveProgramsToday && playerState.liveProgramsToday.length > 0">
+
+      <div class="prow past" v-if="playerState.liveProgramIndex > 0">
+        <div class="prow-t">{{ playerState.liveProgramsToday[playerState.liveProgramIndex - 1].time.substring(0,5) }}</div>
+        <div class="prow-n">{{ playerState.liveProgramsToday[playerState.liveProgramIndex - 1].program?.name }}</div>
       </div>
+
+      <div class="prow now" v-if="playerState.liveProgramIndex >= 0">
+        <div class="prow-t">{{ playerState.liveProgramsToday[playerState.liveProgramIndex].time.substring(0,5) }}</div>
+        <div class="prow-n">▶ {{ playerState.liveProgramsToday[playerState.liveProgramIndex].program?.name }}</div>
+      </div>
+
+      <div class="prow" v-if="playerState.liveProgramIndex + 1 < playerState.liveProgramsToday.length">
+        <div class="prow-t">{{ playerState.liveProgramsToday[playerState.liveProgramIndex + 1].time.substring(0,5) }}</div>
+        <div class="prow-n">{{ playerState.liveProgramsToday[playerState.liveProgramIndex + 1].program?.name }}</div>
+      </div>
+
+      <div class="prow" v-if="playerState.liveProgramIndex + 2 < playerState.liveProgramsToday.length">
+        <div class="prow-t">{{ playerState.liveProgramsToday[playerState.liveProgramIndex + 2].time.substring(0,5) }}</div>
+        <div class="prow-n">{{ playerState.liveProgramsToday[playerState.liveProgramIndex + 2].program?.name }}</div>
+      </div>
+
+    </div>
+
+    <div class="pdrop" :class="{ open: isDropOpen }" id="pdrop" v-else>
       <div class="prow now">
-        <div class="prow-t">20:00</div>
-        <div class="prow-n">▶ Заклик до Бердичівської Богородиці</div>
-      </div>
-      <div class="prow">
-        <div class="prow-t">21:00</div>
-        <div class="prow-n">Розарій — Болісні таємниці</div>
-      </div>
-      <div class="prow">
-        <div class="prow-t">22:00</div>
-        <div class="prow-n">Нічна молитва та Комплета</div>
+        <div class="prow-n">Розклад відсутній або завантажується...</div>
       </div>
     </div>
 
     <div class="nav-bar">
-      <a class="nl on" href="#">Подкасти і архів</a>
+      <a class="nl" href="#">Подкасти і архів</a>
       <a class="nl" href="#">Програма</a>
       <a class="nl" href="#">Молитва</a>
-      <a class="nl" href="#">Місія</a>
+
+      <Link class="nl" :class="{ 'on': isMissionActive }" href="/#mission">Місія</Link>
+
       <a class="nl" href="#">Для тих, хто шукає</a>
       <Link class="nl nl-listen" href="/play">
         <svg viewBox="0 0 10 10">

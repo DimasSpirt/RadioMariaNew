@@ -67,16 +67,14 @@ import {Link} from "@inertiajs/vue3";
             </div>
           </div>
         </div>
-        <div
-            style="background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.13);border-radius:8px;padding:11px 13px;display:flex;align-items:flex-start;gap:9px">
+        <Link href="/#mission"
+              style="text-decoration:none;color:#fff;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.13);border-radius:8px;padding:11px 13px;display:flex;align-items:flex-start;gap:9px">
           <span style="font-size:18px;flex-shrink:0;margin-top:1px">✦</span>
           <div>
             <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:2px">Місія</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);line-height:1.4">Частина Світової Родини Radio
-              Maria
-            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);line-height:1.4">Частина Світової Родини Radio Maria</div>
           </div>
-        </div>
+        </Link>
         <div
             style="background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.13);border-radius:8px;padding:11px 13px;display:flex;align-items:flex-start;gap:9px">
           <span style="font-size:18px;flex-shrink:0;margin-top:1px">❤</span>

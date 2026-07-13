@@ -33,7 +33,7 @@ defineProps({
         <p class="text-[var(--muted)] text-sm mb-8">160 kbps • Для стабільного інтернету</p>
 
         <button
-            @click="playerState.toggle(streams.stream160)"
+            @click="playerState.toggle({ url: streams.stream160, type: 'live', title: 'Прямий ефір', subtitle: '160 kbps • Висока якість' })"
             class="mt-auto w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-md"
             :class="playerState.isPlaying && playerState.currentStream === streams.stream160 ? 'bg-[var(--gold)] text-[var(--dark)]' : 'bg-[var(--blue)] text-white hover:scale-105'"
         >
@@ -50,7 +50,7 @@ defineProps({
         <p class="text-[var(--muted)] text-sm mb-8">64 kbps • Оптимально для дороги</p>
 
         <button
-            @click="playerState.toggle(streams.stream64)"
+            @click="playerState.toggle({ url: streams.stream64, type: 'live', title: 'Прямий ефір', subtitle: '64 kbps • Середня якість' })"
             class="mt-auto w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-md"
             :class="playerState.isPlaying && playerState.currentStream === streams.stream64 ? 'bg-[var(--gold)] text-[var(--dark)]' : 'bg-[var(--light)] border border-[var(--border)] text-[var(--blue)] hover:scale-105'"
         >
@@ -67,7 +67,7 @@ defineProps({
         <p class="text-[var(--muted)] text-sm mb-8">32 kbps • Для повільного зв'язку</p>
 
         <button
-            @click="playerState.toggle(streams.stream32)"
+            @click="playerState.toggle({ url: streams.stream32, type: 'live', title: 'Прямий ефір', subtitle: '32 kbps • Економія даних' })"
             class="mt-auto w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-md"
             :class="playerState.isPlaying && playerState.currentStream === streams.stream32 ? 'bg-[var(--gold)] text-[var(--dark)]' : 'bg-[var(--light)] border border-[var(--border)] text-[var(--blue)] hover:scale-105'"
         >
