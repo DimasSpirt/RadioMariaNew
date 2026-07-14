@@ -7,7 +7,7 @@
         <meta name="theme-color" content="#005b9f">
 
         <!-- Ссылка на сгенерированный манифест -->
-        <link rel="manifest" href="{{ asset('build/manifest.webmanifest') }}">
+        <link rel="manifest" href="/manifest.webmanifest">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

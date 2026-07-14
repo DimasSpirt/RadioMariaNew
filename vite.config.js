@@ -18,8 +18,9 @@ export default defineConfig({
             },
         }),
         VitePWA({
-            outDir: 'public/build',
-            buildBase: '/build/',
+            outDir: 'public',
+            base: '/',
+            scope: '/',
             registerType: 'autoUpdate',
             manifest: {
                 name: 'Радіо Марія',
@@ -28,6 +29,8 @@ export default defineConfig({
                 theme_color: '#005b9f',
                 background_color: '#ffffff',
                 display: 'standalone',
+                start_url: '/',
+                id: '/',
                 icons: [
                     {
                         src: '/pwa-192x192.png',
