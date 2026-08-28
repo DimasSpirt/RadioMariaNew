@@ -6,8 +6,15 @@ import Archive from "@/Components/Index/Archive.vue";
 import Schedule from "@/Components/Index/Schedule.vue";
 import Mission from "@/Components/Index/Mission.vue";
 
+// Принимаем все данные из IndexController
 defineProps({
-  posts: Object
+  posts: Object,
+  featuredPost: Object,
+  featuredHighlights: Array,
+  programSeries: Object,
+  filters: Object,
+  popularPrograms: Array,
+  totalPosts: Number,
 });
 
 </script>
@@ -15,14 +22,23 @@ defineProps({
 <template>
   <Head title="Радіо Марія Україна — Новий сайт 2025"/>
 
-    <Main />
+  <Main />
 
-    <Archive />
+  <!-- Прокидываем переменные внутрь компонента Archive -->
+  <Archive
+      :featuredPost="featuredPost"
+      :featuredHighlights="featuredHighlights"
+      :programSeries="programSeries"
+      :filters="filters"
+      :popularPrograms="popularPrograms"
+      :totalPosts="totalPosts"
+      :posts="posts"
+  />
 
-    <Posts :posts="posts" />
+  <Posts :posts="posts" />
 
-    <Schedule />
+  <Schedule />
 
-    <Mission />
+  <Mission />
 
 </template>

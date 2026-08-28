@@ -20,6 +20,13 @@ class PlayController extends Controller
         ]);
     }
 
+    public function popup()
+    {
+        return view('play.popup', [
+            'streams' => config('radio.streams')
+        ]);
+    }
+
     /**
      * Скачивание аудиофайла
      */

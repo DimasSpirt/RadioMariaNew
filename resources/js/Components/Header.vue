@@ -2,24 +2,49 @@
 import {Link} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted} from 'vue';
 import { playerState } from '@/Store/player';
+import { useIntensionModal } from '@/Composables/useIntensionModal';
 
 const isDropOpen = ref(false);
 const audioRef = ref(null);
 
-// Переменная для подсветки пункта меню "Місія"
+const { openModal } = useIntensionModal();
+
+// Переменные для подсветки пунктов меню
 const isMissionActive = ref(false);
+const isProgramActive = ref(false); // Добавили для "Програма"
 
-// Функция-шпион, которая проверяет позицию блока
+// Функция открытия окна плеера
+const openPopUpPlayer = () => {
+  const url = '/play';
+  const features = 'width=380,height=550,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no';
+
+  window.open(url, 'RadioMariaPopup', features);
+
+  // Ставим текущий плеер на паузу, чтобы звук не дублировался
+  if (playerState.isPlaying) {
+    playerState.isPlaying = false;
+  }
+};
+
+// Функция-шпион, которая проверяет позицию блоков
 const checkScroll = () => {
+  // Проверка для блока "Місія"
   const missionEl = document.getElementById('mission');
-
   if (!missionEl) {
     isMissionActive.value = false;
-    return;
+  } else {
+    const rect = missionEl.getBoundingClientRect();
+    isMissionActive.value = rect.top <= window.innerHeight / 2 && rect.bottom >= 100;
   }
 
-  const rect = missionEl.getBoundingClientRect();
-  isMissionActive.value = rect.top <= window.innerHeight / 2 && rect.bottom >= 100;
+  // Проверка для блока "Програма"
+  const programEl = document.getElementById('program');
+  if (!programEl) {
+    isProgramActive.value = false;
+  } else {
+    const rectProg = programEl.getBoundingClientRect();
+    isProgramActive.value = rectProg.top <= window.innerHeight / 2 && rectProg.bottom >= 100;
+  }
 };
 
 // Как только шапка загрузится, отдаем ссылку на тег <audio> в глобальный стейт,
@@ -87,10 +112,10 @@ onUnmounted(() => {
 
       <div class="strsw">
         <div class="sch on">📻 FM-ефір</div>
-        <div class="sch">📿 Молитва</div>
+        <div class="sch"  @click.prevent="openModal">📿 Молитва</div>
       </div>
       <div class="ptog" @click="isDropOpen = !isDropOpen">☰ Розклад</div>
-      <div class="embl">⧉ Вікно</div>
+      <div class="embl" @click="openPopUpPlayer" style="cursor: pointer;">⧉ Вікно</div>
     </div>
 
     <div class="pdrop" :class="{ open: isDropOpen }" id="pdrop" v-if="playerState.liveProgramsToday && playerState.liveProgramsToday.length > 0">
@@ -125,13 +150,16 @@ onUnmounted(() => {
 
     <div class="nav-bar">
       <a class="nl" href="#">Подкасти і архів</a>
-      <a class="nl" href="#">Програма</a>
-      <a class="nl" href="#">Молитва</a>
+
+      <!-- Обновленная ссылка для Программы -->
+      <Link class="nl" :class="{ 'on': isProgramActive }" href="/#program">Програма</Link>
+
+      <a class="nl" href="#" @click.prevent="openModal">Молитва</a>
 
       <Link class="nl" :class="{ 'on': isMissionActive }" href="/#mission">Місія</Link>
 
       <a class="nl" href="#">Для тих, хто шукає</a>
-      <Link class="nl nl-listen" href="/play">
+      <Link class="nl nl-listen" href="/live">
         <svg viewBox="0 0 10 10">
           <polygon points="2,1 9,5 2,9"/>
         </svg>

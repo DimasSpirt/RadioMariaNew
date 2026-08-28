@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useIntensionModal } from '@/Composables/useIntensionModal';
 import { playerState } from '@/Store/player';
+
+const { openModal } = useIntensionModal();
 
 // Активная вкладка (дата YYYY-MM-DD)
 const activeTab = ref(null);
@@ -53,7 +56,7 @@ const isNowPlaying = (progTs) => {
 </script>
 
 <template>
-  <div class="sched-sec">
+  <div class="sched-sec" id="program">
     <div class="sched-inner">
 
       <div class="sched-list">
@@ -129,7 +132,7 @@ const isNowPlaying = (progTs) => {
           <div class="pri-d">5 хв</div>
         </a>
 
-        <a class="pr-req" href="#">📨 Надіслати молитовне прохання →</a>
+        <a class="pr-req" href="#" @click.prevent="openModal">📨 Надіслати молитовне прохання →</a>
       </div>
 
     </div>

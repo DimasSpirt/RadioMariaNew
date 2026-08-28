@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\IndexController;
+use App\Http\Controllers\IntensionController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PlayController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ScheduleController;
@@ -20,9 +22,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [IndexController::class, 'index'])->name('index');
 
-Route::get('/play', [PlayController::class, 'index'])->name('play.index');
+Route::get('/page/{slug}', [PageController::class, 'show'])->name('pages.show');
+
+Route::get('/live', [PlayController::class, 'index'])->name('player.index');
+Route::get('/play', [PlayController::class, 'popup'])->name('player.popup');
 Route::get('/play/download/{id}', [PlayController::class, 'download'])->name('play.download');
 Route::post('/play/track/{id}', [PlayController::class, 'track'])->name('play.track');
+
+Route::post('/intensions', [IntensionController::class, 'store'])->name('intensions.store');
 
 Route::get('/schedule', [ScheduleController::class, 'getWeek']);
 

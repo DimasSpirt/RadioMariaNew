@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Banner;
 use App\Models\SocialNetwork;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Cache;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -19,6 +21,15 @@ class HandleInertiaRequests extends Middleware
                 'socialNetworks' => function () {
                     return SocialNetwork::published()->ordered()->get();
                 },
+                'banners' => Cache::remember('published_banners', 3600, function () {
+                    return Banner::where('published', 1)->get()->keyBy('id');
+                }),
+            ],
+
+            // Пробрасываем флеш-сообщения в Inertia
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
 
 //            'auth' => [
