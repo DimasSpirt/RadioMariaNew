@@ -59,8 +59,13 @@ const formatDate = (dateString) => {
 // Хелпер для получения картинки (зависит от того, как они хранятся)
 const getImageUrl = (path) => {
   if (!path) return '/images/default.jpg';
-  // Если у тебя абсолютные ссылки или папка storage:
-  return path.startsWith('http') ? path : `/storage/${path}`;
+  if (path.startsWith('http')) return path;
+
+  // Берем домен из .env. Если его там нет, оставляем пустую строку
+  const baseUrl = import.meta.env.VITE_MEDIA_URL || '';
+
+  // Аккуратно склеиваем, подставляя правильный путь к картинкам
+  return `${baseUrl.replace(/\/+$/, '')}/images/content/normal/${path}`;
 };
 </script>
 
@@ -129,28 +134,28 @@ const getImageUrl = (path) => {
           <button @click="performSearch" style="width: 100%; padding: 8px; background: #225a9a; color: white; border: none; border-radius: 4px; cursor: pointer;">Шукати</button>
         </div>
 
-        <!-- Выводим реальное количество постов -->
         <Link class="hall" href="/archive">Весь архів ({{ totalPosts }})</Link>
       </div>
     </div>
 
     <div class="pfilters">
-      <div
+      <!-- Ссылка на все категории (сброс фильтра) -->
+      <Link
           class="pf"
           :class="{ on: activeCategory === 'Всі' }"
-          @click="setCategory('Всі')"
-      >Всі</div>
+          href="/archive"
+      >Всі</Link>
 
       <!-- Динамические категории из popularPrograms -->
-      <div
+      <Link
           v-for="prog in popularPrograms"
           :key="prog.id"
           class="pf"
           :class="{ on: activeCategory === prog.name }"
-          @click="setCategory(prog.name)"
+          :href="`/archive?program=${prog.id}`"
       >
         {{ prog.name }}
-      </div>
+      </Link>
 
       <div class="pf pf-sp" @click="$el.classList.toggle('on')">
         <svg viewBox="0 0 14 14" fill="none">
@@ -164,8 +169,8 @@ const getImageUrl = (path) => {
     <div class="pod-layout">
       <div class="pod-left">
 
-        <!-- Выбор редакции / Featured Post -->
-        <div class="pfeat" v-if="featuredPost">
+        <!-- Выбор редакции / Featured Post (теперь обернуто в Link) -->
+        <Link class="pfeat" v-if="featuredPost" :href="`/${featuredPost.link}`" style="display: flex;">
           <div class="pfeat-img">
             <img :src="getImageUrl(featuredPost.image || featuredPost.detail_image)" :alt="featuredPost.title">
             <div class="pfeat-ov"></div>
@@ -173,7 +178,7 @@ const getImageUrl = (path) => {
             <div class="pfeat-play">
               <svg viewBox="0 0 20 20"><polygon points="5,3 17,10 5,17"/></svg>
             </div>
-            <div class="pfeat-dur">...</div> <!-- Время пока можно скрыть или доставать из мета-данных аудио -->
+            <div class="pfeat-dur">...</div>
           </div>
           <div class="pfeat-body">
             <div class="pfeat-tag">{{ featuredPost.program?.name || 'Радіо Марія' }}</div>
@@ -184,11 +189,11 @@ const getImageUrl = (path) => {
             <div class="pfeat-meta">
               <div class="pfeat-date">{{ formatDate(featuredPost.pub_start) }}</div>
               <div class="ppods">
-                <div class="pp">Audio</div> <!-- Пока заглушка для бейджей платформ -->
+                <div class="pp">Audio</div>
               </div>
             </div>
           </div>
-        </div>
+        </Link>
 
         <!-- Цикл программ -->
         <div class="pseries" v-if="programSeries">
@@ -198,14 +203,15 @@ const getImageUrl = (path) => {
             <div class="pser-sub">Останні випуски</div>
           </div>
 
-          <a class="sep" href="#" v-for="(ep, index) in programSeries.episodes" :key="ep.id" :class="{ now: index === 0 }">
+          <!-- Ссылки на эпизоды -->
+          <Link class="sep" :href="`/${ep.link}`" v-for="(ep, index) in programSeries.episodes" :key="ep.id" :class="{ now: index === 0 }">
             <div class="sep-n" :class="{ cur: index === 0, next: index > 0 }">{{ index === 0 ? '▶' : index + 1 }}</div>
             <div class="sep-i">
               <div class="sep-t">{{ ep.title }}</div>
               <div class="sep-m">{{ formatDate(ep.pub_start) }}</div>
             </div>
             <div class="sep-b cur" v-if="index === 0">Нове</div>
-          </a>
+          </Link>
 
           <div class="pser-foot"><a href="#">Всі серії →</a></div>
         </div>
@@ -214,7 +220,8 @@ const getImageUrl = (path) => {
       <div class="pod-right">
         <!-- Свежие хайлайты (Карусель) -->
         <div class="prow3">
-          <a class="pcard" href="#" v-for="highlight in featuredHighlights" :key="highlight.id">
+          <!-- Ссылки на хайлайты -->
+          <Link class="pcard" :href="`/${highlight.link}`" v-for="highlight in featuredHighlights" :key="highlight.id">
             <div class="pcard-img">
               <img :src="getImageUrl(highlight.image || highlight.detail_image)" :alt="highlight.title">
               <div class="pcard-ov">
@@ -230,7 +237,7 @@ const getImageUrl = (path) => {
                 <div class="pcard-date">{{ formatDate(highlight.pub_start) }}</div>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
 
         <!-- Останні надходження (Главная лента из 12 постов) -->
@@ -240,8 +247,8 @@ const getImageUrl = (path) => {
             <div class="plist-hd-c">{{ totalPosts }} записів</div>
           </div>
 
-          <a class="plr" href="#" v-for="post in posts.data" :key="post.id">
-            <!-- Заглушка для иконок или миниатюр -->
+          <!-- Ссылки на последние посты -->
+          <Link class="plr" :href="`/${post.link}`" v-for="post in posts.data" :key="post.id">
             <div class="plr-icon" style="background:linear-gradient(135deg,#1565a8,#2080cc)">
               <svg viewBox="0 0 14 14"><polygon points="2,1 12,7 2,13"/></svg>
             </div>
@@ -251,7 +258,7 @@ const getImageUrl = (path) => {
                 {{ post.program?.name || 'Без рубрики' }} · {{ formatDate(post.pub_start) }}
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
     </div>
