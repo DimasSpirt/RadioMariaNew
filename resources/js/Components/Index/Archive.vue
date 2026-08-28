@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue';
 import { useSocials } from '@/Composables/useSocials';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 
-// 1. Принимаем все данные из нашего IndexController
+// Принимаем данные из IndexController
 const props = defineProps({
   featuredPost: Object,
   featuredHighlights: Array,
@@ -11,7 +11,7 @@ const props = defineProps({
   filters: Object,
   popularPrograms: Array,
   totalPosts: Number,
-  posts: Object, // Это объект пагинации, сами посты лежат в posts.data
+  posts: Object,
 });
 
 const { renderedSocials } = useSocials();
@@ -19,7 +19,6 @@ const { renderedSocials } = useSocials();
 const searchQuery = ref('');
 const isFiltersOpen = ref(false);
 
-// Переменные для фильтров
 const selectedAuthor = ref('');
 const selectedPresenter = ref('');
 const dateFrom = ref('');
@@ -29,25 +28,17 @@ const toggleFilters = () => {
   isFiltersOpen.value = !isFiltersOpen.value;
 };
 
+// При поиске из блока-анонса перенаправляем прямо на /archive с параметрами
 const performSearch = () => {
-  console.log('Шукаємо:', searchQuery.value, {
+  router.get('/archive', {
+    search: searchQuery.value,
     author: selectedAuthor.value,
     presenter: selectedPresenter.value,
     from: dateFrom.value,
     to: dateTo.value
   });
-  // Тут потом сделаем отправку запроса через Inertia.get
 };
 
-// 2. Реактивные категории берем из popularPrograms
-const activeCategory = ref('Всі');
-
-const setCategory = (catName) => {
-  activeCategory.value = catName;
-  // Тут можно будет триггерить фильтрацию ленты
-};
-
-// 3. Простой хелпер для красивого вывода даты (например, 08.05.2025)
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -56,15 +47,10 @@ const formatDate = (dateString) => {
   });
 };
 
-// Хелпер для получения картинки (зависит от того, как они хранятся)
 const getImageUrl = (path) => {
   if (!path) return '/images/default.jpg';
   if (path.startsWith('http')) return path;
-
-  // Берем домен из .env. Если его там нет, оставляем пустую строку
   const baseUrl = import.meta.env.VITE_MEDIA_URL || '';
-
-  // Аккуратно склеиваем, подставляя правильный путь к картинкам
   return `${baseUrl.replace(/\/+$/, '')}/images/content/normal/${path}`;
 };
 </script>
@@ -134,24 +120,20 @@ const getImageUrl = (path) => {
           <button @click="performSearch" style="width: 100%; padding: 8px; background: #225a9a; color: white; border: none; border-radius: 4px; cursor: pointer;">Шукати</button>
         </div>
 
+        <!-- Прямой переход на полный архив -->
         <Link class="hall" href="/archive">Весь архів ({{ totalPosts }})</Link>
       </div>
     </div>
 
     <div class="pfilters">
-      <!-- Ссылка на все категории (сброс фильтра) -->
-      <Link
-          class="pf"
-          :class="{ on: activeCategory === 'Всі' }"
-          href="/archive"
-      >Всі</Link>
+      <!-- Ссылка на сброс фильтров в полном архиве -->
+      <Link class="pf" href="/archive">Всі</Link>
 
-      <!-- Динамические категории из popularPrograms -->
+      <!-- Переход в архив с фильтрацией по конкретной программе -->
       <Link
           v-for="prog in popularPrograms"
           :key="prog.id"
           class="pf"
-          :class="{ on: activeCategory === prog.name }"
           :href="`/archive?program=${prog.id}`"
       >
         {{ prog.name }}
@@ -168,8 +150,6 @@ const getImageUrl = (path) => {
 
     <div class="pod-layout">
       <div class="pod-left">
-
-        <!-- Выбор редакции / Featured Post (теперь обернуто в Link) -->
         <Link class="pfeat" v-if="featuredPost" :href="`/${featuredPost.link}`" style="display: flex;">
           <div class="pfeat-img">
             <img :src="getImageUrl(featuredPost.image || featuredPost.detail_image)" :alt="featuredPost.title">
@@ -203,7 +183,6 @@ const getImageUrl = (path) => {
             <div class="pser-sub">Останні випуски</div>
           </div>
 
-          <!-- Ссылки на эпизоды -->
           <Link class="sep" :href="`/${ep.link}`" v-for="(ep, index) in programSeries.episodes" :key="ep.id" :class="{ now: index === 0 }">
             <div class="sep-n" :class="{ cur: index === 0, next: index > 0 }">{{ index === 0 ? '▶' : index + 1 }}</div>
             <div class="sep-i">
@@ -213,14 +192,14 @@ const getImageUrl = (path) => {
             <div class="sep-b cur" v-if="index === 0">Нове</div>
           </Link>
 
-          <div class="pser-foot"><a href="#">Всі серії →</a></div>
+          <div class="pser-foot">
+            <Link :href="`/archive?program=${programSeries.program.id}`">Всі серії →</Link>
+          </div>
         </div>
       </div>
 
       <div class="pod-right">
-        <!-- Свежие хайлайты (Карусель) -->
         <div class="prow3">
-          <!-- Ссылки на хайлайты -->
           <Link class="pcard" :href="`/${highlight.link}`" v-for="highlight in featuredHighlights" :key="highlight.id">
             <div class="pcard-img">
               <img :src="getImageUrl(highlight.image || highlight.detail_image)" :alt="highlight.title">
@@ -240,14 +219,12 @@ const getImageUrl = (path) => {
           </Link>
         </div>
 
-        <!-- Останні надходження (Главная лента из 12 постов) -->
         <div class="plist">
           <div class="plist-hd">
             <div class="plist-hd-t">Останні надходження</div>
             <div class="plist-hd-c">{{ totalPosts }} записів</div>
           </div>
 
-          <!-- Ссылки на последние посты -->
           <Link class="plr" :href="`/${post.link}`" v-for="post in posts.data" :key="post.id">
             <div class="plr-icon" style="background:linear-gradient(135deg,#1565a8,#2080cc)">
               <svg viewBox="0 0 14 14"><polygon points="2,1 12,7 2,13"/></svg>
@@ -282,7 +259,6 @@ const getImageUrl = (path) => {
         {{ social.name }}
       </a>
     </div>
-
   </div>
 </template>
 

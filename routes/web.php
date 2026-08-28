@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\IntensionController;
 use App\Http\Controllers\PageController;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [IndexController::class, 'index'])->name('index');
+
+Route::get('/archive', [ArchiveController::class, 'index'])->name('archive.index');
 
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('pages.show');
 
