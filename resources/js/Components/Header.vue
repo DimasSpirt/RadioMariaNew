@@ -69,6 +69,7 @@ onUnmounted(() => {
     <audio
         ref="audioRef"
         :src="playerState.currentStream"
+        :muted="playerState.muted"
         preload="none"
         @timeupdate="playerState.currentTime = $event.target.currentTime"
         @loadedmetadata="playerState.duration = $event.target.duration"

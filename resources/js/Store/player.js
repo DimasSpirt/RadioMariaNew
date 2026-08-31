@@ -6,6 +6,7 @@ export const playerState = reactive({
     isPlaying: false,
     currentStream: 'https://radiomaria.org.ua:8443/stream160', // По умолчанию играет лайв
     audioElement: null,
+    muted: false, // Глобальное состояние звука (включен/выключен)
 
     // Время для подкастов
     currentTime: 0,
@@ -123,6 +124,8 @@ export const playerState = reactive({
 
             if (this.audioElement) {
                 this.audioElement.load();
+                // Принудительно синхронизируем звук при загрузке нового трека
+                this.audioElement.muted = this.muted;
                 this.playAudio();
             }
             return;
@@ -169,6 +172,14 @@ export const playerState = reactive({
             if (this.duration && newTime > this.duration) newTime = this.duration;
 
             this.audioElement.currentTime = newTime;
+        }
+    },
+
+    // Глобальный метод переключения звука (Mute/Unmute)
+    toggleMute() {
+        this.muted = !this.muted;
+        if (this.audioElement) {
+            this.audioElement.muted = this.muted;
         }
     }
 });
